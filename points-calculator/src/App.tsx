@@ -39,45 +39,57 @@ function App() {
   };
 
   useEffect(() => {
-    // Use the production backend API URL
-    const apiUrl = `https://points-calculator-api.onrender.com/api/prices`;
+    const apiUrl = "https://points-calculator-api.onrender.com/api/prices";
 
-    fetch(apiUrl)
-      .then(res => {
-        if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.data && Array.isArray(data.data)) {
-          const grouped: Record<string, LLMModel[]> = {
-            alibaba: [],
-            volcengine: [],
-            deepseek: []
-          };
-          
-          data.data.forEach((item: any) => {
-            if (item.provider && grouped[item.provider]) {
-              grouped[item.provider].push({
-                id: item.id,
-                name: item.name,
-                inputPrice: item.inputPrice,
-                outputPrice: item.outputPrice
-              });
-            }
-          });
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-          setProvidersData(prev => prev.map(provider => {
-            const liveModels = grouped[provider.id];
-            if (liveModels && liveModels.length > 0) {
-              return { ...provider, models: liveModels };
-            }
-            return provider;
-          }));
+    const load = async () => {
+      for (let attempt = 0; attempt < 6; attempt++) {
+        try {
+          const res = await fetch(apiUrl, { cache: "no-store" });
+          if (res.status === 503) {
+            throw new Error("Service warming up");
+          }
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          const data = await res.json();
+
+          if (data && data.data && Array.isArray(data.data)) {
+            const grouped: Record<string, LLMModel[]> = {
+              alibaba: [],
+              volcengine: [],
+              deepseek: []
+            };
+
+            data.data.forEach((item: any) => {
+              if (item.provider && grouped[item.provider]) {
+                grouped[item.provider].push({
+                  id: item.id,
+                  name: item.name,
+                  inputPrice: item.inputPrice,
+                  outputPrice: item.outputPrice
+                });
+              }
+            });
+
+            setProvidersData(prev => prev.map(provider => {
+              const liveModels = grouped[provider.id];
+              if (liveModels && liveModels.length > 0) {
+                return { ...provider, models: liveModels };
+              }
+              return provider;
+            }));
+          }
+          return;
+        } catch (err) {
+          if (attempt === 5) return;
+          await sleep(800 + attempt * 700);
         }
-      })
-      .catch(err => {
-        console.warn('Failed to fetch real-time prices, using fallback data:', err);
-      });
+      }
+    };
+
+    void load();
   }, []);
 
   const updateDropdownPosition = useCallback(() => {

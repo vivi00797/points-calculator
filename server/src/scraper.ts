@@ -8,22 +8,40 @@ export interface ModelPrice {
   outputPrice: number;
 }
 
+type ScrapedModel = { id: string; name: string; inputPrice: number; outputPrice: number };
+
+export const FALLBACK_PRICES: ModelPrice[] = [
+  { id: "deepseek-chat", name: "DeepSeek Chat (V3)", provider: "deepseek", inputPrice: 0.002, outputPrice: 0.008 },
+  { id: "deepseek-reasoner", name: "DeepSeek Reasoner (R1)", provider: "deepseek", inputPrice: 0.004, outputPrice: 0.016 },
+  { id: "doubao-pro-32k", name: "Doubao-pro-32k", provider: "volcengine", inputPrice: 0.0008, outputPrice: 0.002 },
+  { id: "doubao-lite-32k", name: "Doubao-lite-32k", provider: "volcengine", inputPrice: 0.0003, outputPrice: 0.0006 },
+  { id: "doubao-pro-128k", name: "Doubao-pro-128k", provider: "volcengine", inputPrice: 0.005, outputPrice: 0.009 },
+  { id: "doubao-lite-128k", name: "Doubao-lite-128k", provider: "volcengine", inputPrice: 0.0008, outputPrice: 0.0015 },
+  { id: "qwen-max", name: "qwen-max", provider: "alibaba", inputPrice: 0.0024, outputPrice: 0.0096 },
+  { id: "qwen-plus", name: "qwen-plus", provider: "alibaba", inputPrice: 0.0008, outputPrice: 0.002 },
+  { id: "qwen-turbo", name: "qwen-turbo", provider: "alibaba", inputPrice: 0.0003, outputPrice: 0.0006 },
+  { id: "qwen-long", name: "qwen-long", provider: "alibaba", inputPrice: 0.0005, outputPrice: 0.002 },
+];
+
 export async function scrapePrices(): Promise<ModelPrice[]> {
-  const results: ModelPrice[] = [];
+  const results: ModelPrice[] = [...FALLBACK_PRICES];
   console.log('Starting scraping job...');
-  
+
   // 1. Scrape Alibaba Cloud (Qwen)
   try {
-    const browser = await chromium.launch({ 
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
-    });
-    const page = await browser.newPage();
-    console.log('Navigating to Alibaba Cloud help page...');
-    await page.goto('https://help.aliyun.com/zh/model-studio/getting-started/models', { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForSelector('table', { timeout: 10000 }).catch(() => {});
-    
-    const alibabaPrices = await page.evaluate(() => {
+    let browser: any;
+    let page: any;
+    try {
+      browser = await chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      page = await browser.newPage();
+      console.log('Navigating to Alibaba Cloud help page...');
+      await page.goto('https://help.aliyun.com/zh/model-studio/getting-started/models', { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForSelector('table', { timeout: 10000 }).catch(() => {});
+
+      const alibabaPrices: ScrapedModel[] = await page.evaluate(() => {
       const models: { id: string, name: string, inputPrice: number, outputPrice: number }[] = [];
       const rows = document.querySelectorAll('table tbody tr');
       rows.forEach(row => {
@@ -92,30 +110,38 @@ export async function scrapePrices(): Promise<ModelPrice[]> {
         }
       });
       return models;
-    });
-    
-    const uniqueAlibaba = Array.from(new Map(alibabaPrices.map(m => [m.id, m])).values());
-    if (uniqueAlibaba.length > 0) {
-      console.log(`Successfully scraped ${uniqueAlibaba.length} Qwen models.`);
-      results.push(...uniqueAlibaba.map(m => ({ ...m, provider: 'alibaba' })));
+      });
+
+      const uniqueAlibaba = Array.from(new Map<string, ScrapedModel>(alibabaPrices.map(m => [m.id, m])).values());
+      if (uniqueAlibaba.length > 0) {
+        console.log(`Successfully scraped ${uniqueAlibaba.length} Qwen models.`);
+        results.push(...uniqueAlibaba.map(m => ({ ...m, provider: 'alibaba' })));
+      }
+    } catch (error) {
+      console.error('Error scraping Alibaba:', error);
+    } finally {
+      await page?.close().catch(() => {});
+      await browser?.close().catch(() => {});
     }
-    await browser.close();
   } catch (error) {
     console.error('Error scraping Alibaba:', error);
   }
 
   // 2. Scrape Volcengine (Doubao)
   try {
-    const browser = await chromium.launch({ 
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
-    });
-    const page = await browser.newPage();
-    console.log('Navigating to Volcengine (Doubao) pricing page...');
-    await page.goto('https://www.volcengine.com/docs/82379/1099320', { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForSelector('table', { timeout: 10000 }).catch(() => {});
-    
-    const doubaoPrices = await page.evaluate(() => {
+    let browser: any;
+    let page: any;
+    try {
+      browser = await chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      page = await browser.newPage();
+      console.log('Navigating to Volcengine (Doubao) pricing page...');
+      await page.goto('https://www.volcengine.com/docs/82379/1099320', { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForSelector('table', { timeout: 10000 }).catch(() => {});
+
+      const doubaoPrices: ScrapedModel[] = await page.evaluate(() => {
       const models: { id: string, name: string, inputPrice: number, outputPrice: number }[] = [];
       const rows = document.querySelectorAll('table tbody tr');
       rows.forEach(row => {
@@ -166,30 +192,38 @@ export async function scrapePrices(): Promise<ModelPrice[]> {
         }
       });
       return models;
-    });
-    
-    const uniqueDoubao = Array.from(new Map(doubaoPrices.map(m => [m.id, m])).values());
-    if (uniqueDoubao.length > 0) {
-      console.log(`Successfully scraped ${uniqueDoubao.length} Doubao models.`);
-      results.push(...uniqueDoubao.map(m => ({ ...m, provider: 'volcengine' })));
+      });
+
+      const uniqueDoubao = Array.from(new Map<string, ScrapedModel>(doubaoPrices.map(m => [m.id, m])).values());
+      if (uniqueDoubao.length > 0) {
+        console.log(`Successfully scraped ${uniqueDoubao.length} Doubao models.`);
+        results.push(...uniqueDoubao.map(m => ({ ...m, provider: 'volcengine' })));
+      }
+    } catch (error) {
+      console.error('Error scraping Volcengine:', error);
+    } finally {
+      await page?.close().catch(() => {});
+      await browser?.close().catch(() => {});
     }
-    await browser.close();
   } catch (error) {
     console.error('Error scraping Volcengine:', error);
   }
 
   // 3. Scrape DeepSeek
   try {
-    const browser = await chromium.launch({ 
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
-    });
-    const page = await browser.newPage();
-    console.log('Navigating to DeepSeek pricing page...');
-    await page.goto('https://api-docs.deepseek.com/zh-cn/quick_start/pricing', { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForSelector('table', { timeout: 10000 }).catch(() => {});
-    
-    const deepseekPrices = await page.evaluate(() => {
+    let browser: any;
+    let page: any;
+    try {
+      browser = await chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      page = await browser.newPage();
+      console.log('Navigating to DeepSeek pricing page...');
+      await page.goto('https://api-docs.deepseek.com/zh-cn/quick_start/pricing', { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForSelector('table', { timeout: 10000 }).catch(() => {});
+
+      const deepseekPrices: ScrapedModel[] = await page.evaluate(() => {
       const models: { id: string, name: string, inputPrice: number, outputPrice: number }[] = [];
       const rows = document.querySelectorAll('table tbody tr');
       rows.forEach(row => {
@@ -246,39 +280,23 @@ export async function scrapePrices(): Promise<ModelPrice[]> {
         }
       });
       return models;
-    });
-    
-    const uniqueDeepSeek = Array.from(new Map(deepseekPrices.map(m => [m.id, m])).values());
-    if (uniqueDeepSeek.length > 0) {
-      console.log(`Successfully scraped ${uniqueDeepSeek.length} DeepSeek models.`);
-      results.push(...uniqueDeepSeek.map(m => ({ ...m, provider: 'deepseek' })));
+      });
+
+      const uniqueDeepSeek = Array.from(new Map<string, ScrapedModel>(deepseekPrices.map(m => [m.id, m])).values());
+      if (uniqueDeepSeek.length > 0) {
+        console.log(`Successfully scraped ${uniqueDeepSeek.length} DeepSeek models.`);
+        results.push(...uniqueDeepSeek.map(m => ({ ...m, provider: 'deepseek' })));
+      }
+    } catch (error) {
+      console.error('Error scraping DeepSeek:', error);
+    } finally {
+      await page?.close().catch(() => {});
+      await browser?.close().catch(() => {});
     }
-    await browser.close();
   } catch (error) {
     console.error('Error scraping DeepSeek:', error);
   }
-
-  // 4. Add static/fallback
-  const fallbacks: ModelPrice[] = [
-    { id: "deepseek-chat", name: "DeepSeek Chat (V3)", provider: "deepseek", inputPrice: 0.002, outputPrice: 0.008 }, 
-    { id: "deepseek-reasoner", name: "DeepSeek Reasoner (R1)", provider: "deepseek", inputPrice: 0.004, outputPrice: 0.016 },
-    { id: "doubao-pro-32k", name: "Doubao-pro-32k", provider: "volcengine", inputPrice: 0.0008, outputPrice: 0.002 },
-    { id: "doubao-lite-32k", name: "Doubao-lite-32k", provider: "volcengine", inputPrice: 0.0003, outputPrice: 0.0006 },
-    { id: "doubao-pro-128k", name: "Doubao-pro-128k", provider: "volcengine", inputPrice: 0.005, outputPrice: 0.009 },
-    { id: "doubao-lite-128k", name: "Doubao-lite-128k", provider: "volcengine", inputPrice: 0.0008, outputPrice: 0.0015 },
-    { id: "qwen-max", name: "qwen-max", provider: "alibaba", inputPrice: 0.0024, outputPrice: 0.0096 },
-    { id: "qwen-plus", name: "qwen-plus", provider: "alibaba", inputPrice: 0.0008, outputPrice: 0.002 },
-    { id: "qwen-turbo", name: "qwen-turbo", provider: "alibaba", inputPrice: 0.0003, outputPrice: 0.0006 },
-    { id: "qwen-long", name: "qwen-long", provider: "alibaba", inputPrice: 0.0005, outputPrice: 0.002 },
-  ];
-  
-  const scrapedIds = new Set(results.map(r => r.id));
-  for (const fb of fallbacks) {
-    if (!scrapedIds.has(fb.id)) {
-      results.push(fb);
-    }
-  }
-
-  console.log('Final price list length:', results.length);
-  return results;
+  const deduped = Array.from(new Map(results.map(m => [m.id, m])).values());
+  console.log('Final price list length:', deduped.length);
+  return deduped;
 }
