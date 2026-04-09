@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "PLAYWRIGHT_BROWSERS_PATH=0 ts-node src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "PLAYWRIGHT_BROWSERS_PATH=0 node dist/index.js",
     "dev": "nodemon src/index.ts",
     "postinstall": "PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium"
   },
