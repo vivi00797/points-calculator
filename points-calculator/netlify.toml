@@ -1,5 +1,4 @@
 [build]
-  base = "points-calculator"
   publish = "dist"
   command = "npm run build"
 
