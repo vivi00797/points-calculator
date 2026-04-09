@@ -39,11 +39,8 @@ function App() {
   };
 
   useEffect(() => {
-    // Determine the backend API URL dynamically based on the current host
-    // If we are accessing via localhost, use localhost:3001
-    // If we are accessing via a local IP (e.g., 192.168.x.x), use that IP with port 3001
-    const hostname = window.location.hostname;
-    const apiUrl = `http://${hostname}:3001/api/prices`;
+    // Use the production backend API URL
+    const apiUrl = `https://points-calculator-api.onrender.com/api/prices`;
 
     fetch(apiUrl)
       .then(res => {
