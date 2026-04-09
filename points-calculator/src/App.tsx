@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Calculator, Settings, Info, ChevronDown, Check } from "lucide-react";
-import { providers, type LLMModel } from "./data/models";
+import { providers, type LLMModel, type ModelProvider } from "./data/models";
 import { cn } from "./lib/utils";
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
     const lowerSearch = search.toLowerCase();
     return providersData.map(provider => ({
       ...provider,
-      models: provider.models.filter(m => m.name.toLowerCase().includes(lowerSearch))
+      models: provider.models.filter((m: LLMModel) => m.name.toLowerCase().includes(lowerSearch))
     })).filter(provider => provider.models.length > 0);
   }, [search, providersData]);
 
@@ -358,7 +358,7 @@ function App() {
                           {provider.name}
                         </div>
                         <ul className="py-1">
-                          {provider.models.map((model) => (
+                          {provider.models.map((model: LLMModel) => (
                             <li
                               key={model.id}
                               className={cn(
