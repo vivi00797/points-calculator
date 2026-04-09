@@ -1,0 +1,14 @@
+.DS_Store
+*.log
+temp.json
+
+node_modules/
+dist/
+.env
+.env.*
+
+server/node_modules/
+server/dist/
+
+points-calculator/node_modules/
+points-calculator/dist/
