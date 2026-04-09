@@ -14,7 +14,10 @@ export async function scrapePrices(): Promise<ModelPrice[]> {
   
   // 1. Scrape Alibaba Cloud (Qwen)
   try {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ 
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+    });
     const page = await browser.newPage();
     console.log('Navigating to Alibaba Cloud help page...');
     await page.goto('https://help.aliyun.com/zh/model-studio/getting-started/models', { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -103,7 +106,10 @@ export async function scrapePrices(): Promise<ModelPrice[]> {
 
   // 2. Scrape Volcengine (Doubao)
   try {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ 
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+    });
     const page = await browser.newPage();
     console.log('Navigating to Volcengine (Doubao) pricing page...');
     await page.goto('https://www.volcengine.com/docs/82379/1099320', { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -174,7 +180,10 @@ export async function scrapePrices(): Promise<ModelPrice[]> {
 
   // 3. Scrape DeepSeek
   try {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ 
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+    });
     const page = await browser.newPage();
     console.log('Navigating to DeepSeek pricing page...');
     await page.goto('https://api-docs.deepseek.com/zh-cn/quick_start/pricing', { waitUntil: 'domcontentloaded', timeout: 30000 });
