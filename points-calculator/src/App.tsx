@@ -79,11 +79,23 @@ function App() {
         });
 
         setProvidersData(prev => prev.map(provider => {
-          const liveModels = grouped[provider.id];
-          if (liveModels && liveModels.length > 0) {
+          // Merge existing models (like fallbacks) with new live models
+          const existingModels = [...provider.models];
+          const liveModels = grouped[provider.id] || [];
+          
+          liveModels.forEach(liveModel => {
+            const existingIndex = existingModels.findIndex(m => m.id === liveModel.id);
+            if (existingIndex >= 0) {
+              existingModels[existingIndex] = liveModel; // Update price if already exists
+            } else {
+              existingModels.push(liveModel); // Add if it's a new model
+            }
+          });
+
+          if (existingModels.length > 0) {
             // Sort models to ensure consistent order
-            liveModels.sort((a, b) => a.name.localeCompare(b.name));
-            return { ...provider, models: liveModels };
+            existingModels.sort((a, b) => a.name.localeCompare(b.name));
+            return { ...provider, models: existingModels };
           }
           return provider;
         }));
@@ -136,11 +148,23 @@ function App() {
             });
 
             setProvidersData(prev => prev.map(provider => {
-              const liveModels = grouped[provider.id];
-              if (liveModels && liveModels.length > 0) {
+              // Merge existing models (like fallbacks) with new live models
+              const existingModels = [...provider.models];
+              const liveModels = grouped[provider.id] || [];
+              
+              liveModels.forEach(liveModel => {
+                const existingIndex = existingModels.findIndex(m => m.id === liveModel.id);
+                if (existingIndex >= 0) {
+                  existingModels[existingIndex] = liveModel; // Update price if already exists
+                } else {
+                  existingModels.push(liveModel); // Add if it's a new model
+                }
+              });
+
+              if (existingModels.length > 0) {
                 // Sort models to ensure consistent order
-                liveModels.sort((a, b) => a.name.localeCompare(b.name));
-                return { ...provider, models: liveModels };
+                existingModels.sort((a, b) => a.name.localeCompare(b.name));
+                return { ...provider, models: existingModels };
               }
               return provider;
             }));
