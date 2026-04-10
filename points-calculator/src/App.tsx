@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Calculator, Settings, Info, ChevronDown, Check, RefreshCw } from "lucide-react";
+import { Calculator, ChevronDown, Check, RefreshCw, Coins, Target, Activity } from "lucide-react";
 import { providers, type LLMModel, type ModelProvider } from "./data/models";
 import { cn } from "./lib/utils";
 
@@ -199,216 +199,209 @@ function App() {
   }, [inputTokens, outputTokens, inputPrice, outputPrice, lossRate, profitMargin, pointCoefficient]);
 
   return (
-    <div className="min-h-screen text-slate-900 py-10 px-4 sm:px-6 lg:px-8 font-sans bg-gradient-to-br from-violet-50 via-indigo-50 to-slate-50">
-      <div className="max-w-6xl mx-auto space-y-8 relative">
-        <div className="pointer-events-none absolute -top-24 -left-24 h-80 w-80 rounded-full bg-violet-400/25 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 -right-24 h-80 w-80 rounded-full bg-indigo-400/25 blur-3xl" />
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center p-3 bg-violet-100 text-violet-700 rounded-full mb-4 shadow-sm ring-1 ring-violet-200/60">
+    <div className="min-h-screen text-[#1E1B4B] py-10 px-4 sm:px-6 lg:px-8 font-sans bg-gradient-to-b from-[#E6E9FF] via-[#F5EFFF] to-[#FFFFFF] relative overflow-hidden">
+      {/* Decorative blurred blobs to match the soft pastel style */}
+      <div className="pointer-events-none absolute -top-40 -left-20 h-96 w-96 rounded-full bg-[#D8B4FE]/30 blur-[80px]" />
+      <div className="pointer-events-none absolute top-40 -right-20 h-96 w-96 rounded-full bg-[#93C5FD]/30 blur-[80px]" />
+      <div className="pointer-events-none absolute -bottom-40 left-1/3 h-[500px] w-[500px] rounded-full bg-[#FDBA74]/20 blur-[100px]" />
+
+      <div className="max-w-4xl mx-auto space-y-8 relative z-10">
+        
+        {/* Header / Hero Section matching "Slaying" */}
+        <div className="text-center space-y-3 pt-6 pb-4">
+          <div className="inline-flex items-center justify-center p-3.5 bg-white/80 text-[#7C3AED] rounded-2xl mb-2 shadow-sm backdrop-blur-sm">
             <Calculator className="w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-            点数换算小工具
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#1E1B4B]">
+            预估点数消耗
           </h1>
-          <p className="text-slate-500 max-w-2xl mx-auto">
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <span className="text-5xl md:text-7xl font-black text-[#7C3AED] drop-shadow-sm">
+              {pointsResult.toLocaleString(undefined, { maximumFractionDigits: 6 })}
+            </span>
+            <span className="text-2xl font-bold text-[#8B8BA7] self-end mb-2">pts</span>
+          </div>
+          <p className="text-[#64748B] max-w-2xl mx-auto mt-4 font-medium">
             仅限内部人员使用，不可给客户提供
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-8 items-start">
-          <div className="space-y-6">
-            <div className="bg-white/75 backdrop-blur-md p-6 rounded-2xl shadow-sm ring-1 ring-violet-200/60">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-slate-400" />
-                  1. 选择模型与单价
-                </h2>
-                <button
-                  onClick={handleUpdatePrices}
-                  disabled={isUpdating}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-violet-700 bg-violet-100 rounded-md hover:bg-violet-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className={cn("w-4 h-4", isUpdating && "animate-spin")} />
-                  {isUpdating ? "更新中..." : "更新"}
-                </button>
+        {/* Full width model selection card */}
+        <div className="bg-white/90 backdrop-blur-xl p-6 md:p-8 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-[#F5EFFF] text-[#7C3AED] rounded-xl">
+                <Target className="w-6 h-6" />
               </div>
-              
-              <div className="space-y-4">
-                <div className="relative">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">模型选择</label>
-                  <div ref={modelSelectAnchorRef} className="relative" onClick={() => setIsDropdownOpen(true)}>
-                    <input
-                      type="text"
-                      className="w-full pl-3 pr-10 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white shadow-sm cursor-pointer"
-                      placeholder="搜索或选择模型..."
-                      value={isDropdownOpen ? search : (selectedModel ? selectedModel.name : search)}
-                      onFocus={() => setIsDropdownOpen(true)}
-                      onChange={(e) => {
-                        setSearch(e.target.value);
-                        setIsDropdownOpen(true);
-                      }}
-                    />
-                    <ChevronDown className="absolute right-3 top-3 w-4 h-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      输入单价 <span className="text-slate-400 font-normal">(¥ / 1k tokens)</span>
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                      placeholder="例如: 0.01"
-                      value={inputPrice}
-                      onChange={(e) => setInputPrice(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
-                      输出单价 <span className="text-slate-400 font-normal">(¥ / 1k tokens)</span>
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                      placeholder="例如: 0.03"
-                      value={outputPrice}
-                      onChange={(e) => setOutputPrice(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/75 backdrop-blur-md p-6 rounded-2xl shadow-sm ring-1 ring-violet-200/60">
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Settings className="w-5 h-5 text-slate-400" />
-                2. 预估使用量
+              <h2 className="text-xl font-bold text-[#1E1B4B]">
+                选择模型与单价
               </h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">输入 Tokens</label>
-                  <input
-                    type="number"
-                    min="0"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="例如: 10000"
-                    value={inputTokens}
-                    onChange={(e) => setInputTokens(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">输出 Tokens</label>
-                  <input
-                    type="number"
-                    min="0"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    placeholder="例如: 2000"
-                    value={outputTokens}
-                    onChange={(e) => setOutputTokens(e.target.value)}
-                  />
-                </div>
-              </div>
             </div>
-
-            <div className="bg-white/75 backdrop-blur-md p-6 rounded-2xl shadow-sm ring-1 ring-violet-200/60">
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Settings className="w-5 h-5 text-slate-400" />
-                3. 计费系数配置
-              </h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    损耗率 <span className="text-slate-400 font-normal">(倍数，如 1.2)</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    value={lossRate}
-                    onChange={(e) => setLossRate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    利润率 <span className="text-slate-400 font-normal">(倍数，如 1.5)</span>
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    value={profitMargin}
-                    onChange={(e) => setProfitMargin(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">点数系数</label>
-                  <input
-                    type="number"
-                    step="any"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    value={pointCoefficient}
-                    onChange={(e) => setPointCoefficient(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="mt-4 p-3 bg-violet-50/60 rounded-lg text-sm text-slate-600 flex items-start gap-2">
-                <Info className="w-4 h-4 text-violet-600 mt-0.5 shrink-0" />
-                <p>
-                  公式: <code className="bg-slate-200 px-1 py-0.5 rounded">((入Tokens/1k * 入价 + 出Tokens/1k * 出价) * 损耗率 * 利润率) / 点数系数</code>
-                </p>
-              </div>
-            </div>
+            <button
+              onClick={handleUpdatePrices}
+              disabled={isUpdating}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-[#7C3AED] rounded-xl hover:bg-[#6D28D9] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#7C3AED]/20 active:scale-95"
+            >
+              <RefreshCw className={cn("w-4 h-4", isUpdating && "animate-spin")} />
+              {isUpdating ? "更新中..." : "更新实时价格"}
+            </button>
           </div>
-
-          <div className="lg:sticky lg:top-8">
-            <div className="rounded-2xl shadow-lg text-white overflow-hidden bg-gradient-to-br from-violet-600 via-indigo-600 to-fuchsia-600 ring-1 ring-white/15">
-              <div className="p-6 border-b border-white/15">
-                <h2 className="text-white/85 font-medium mb-2">预估点数消耗</h2>
-                <div className="text-5xl font-bold tracking-tight break-all">
-                  {pointsResult.toLocaleString(undefined, { maximumFractionDigits: 6 })}
-                </div>
-                <div className="text-white/70 text-sm mt-2">
-                  pts
-                </div>
+          
+          <div className="space-y-5">
+            <div className="relative">
+              <label className="block text-sm font-bold text-[#64748B] mb-2 pl-1">模型选择</label>
+              <div ref={modelSelectAnchorRef} className="relative group" onClick={() => setIsDropdownOpen(true)}>
+                <input
+                  type="text"
+                  className="w-full pl-4 pr-12 py-3.5 border-2 border-[#E2E8F0] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] bg-[#F8FAFC] group-hover:bg-white transition-colors text-[#1E1B4B] font-medium text-lg cursor-pointer"
+                  placeholder="搜索或选择模型..."
+                  value={isDropdownOpen ? search : (selectedModel ? selectedModel.name : search)}
+                  onFocus={() => setIsDropdownOpen(true)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setIsDropdownOpen(true);
+                  }}
+                />
+                <ChevronDown className="absolute right-4 top-4 w-6 h-6 text-[#94A3B8]" />
               </div>
-              
-              <div className="p-6 bg-white/10 space-y-4">
-                <h3 className="text-sm font-medium text-white/85 uppercase tracking-wider">计算明细</h3>
-                
-                <div className="space-y-2 text-sm text-white/85">
-                  <div className="flex justify-between">
-                    <span>输入成本</span>
-                    <span>¥{((parseFloat(inputTokens) || 0) / 1000 * (parseFloat(inputPrice) || 0)).toFixed(4)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>输出成本</span>
-                    <span>¥{((parseFloat(outputTokens) || 0) / 1000 * (parseFloat(outputPrice) || 0)).toFixed(4)}</span>
-                  </div>
-                  <div className="pt-2 border-t border-white/15 flex justify-between font-medium">
-                    <span>基础总成本</span>
-                    <span>¥{(((parseFloat(inputTokens) || 0) / 1000 * (parseFloat(inputPrice) || 0)) + ((parseFloat(outputTokens) || 0) / 1000 * (parseFloat(outputPrice) || 0))).toFixed(4)}</span>
-                  </div>
-                  <div className="flex justify-between text-white/70">
-                    <span>乘数调整</span>
-                    <span>× {((parseFloat(lossRate) || 0) * (parseFloat(profitMargin) || 0)).toFixed(4)}</span>
-                  </div>
-                  <div className="flex justify-between text-white/70">
-                    <span>点数系数</span>
-                    <span>÷ {parseFloat(pointCoefficient) || 1}</span>
-                  </div>
-                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]/50">
+                <label className="block text-sm font-bold text-[#64748B] mb-2">
+                  输入单价 <span className="text-[#94A3B8] font-normal text-xs">(¥ / 1k tokens)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  className="w-full px-3 py-2 border-0 border-b-2 border-[#CBD5E1] bg-transparent focus:ring-0 focus:border-[#7C3AED] text-xl font-bold text-[#1E1B4B] placeholder-[#CBD5E1] transition-colors"
+                  placeholder="0.00"
+                  value={inputPrice}
+                  onChange={(e) => setInputPrice(e.target.value)}
+                />
+              </div>
+              <div className="bg-[#F8FAFC] p-4 rounded-2xl border border-[#E2E8F0]/50">
+                <label className="block text-sm font-bold text-[#64748B] mb-2">
+                  输出单价 <span className="text-[#94A3B8] font-normal text-xs">(¥ / 1k tokens)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  className="w-full px-3 py-2 border-0 border-b-2 border-[#CBD5E1] bg-transparent focus:ring-0 focus:border-[#7C3AED] text-xl font-bold text-[#1E1B4B] placeholder-[#CBD5E1] transition-colors"
+                  placeholder="0.00"
+                  value={outputPrice}
+                  onChange={(e) => setOutputPrice(e.target.value)}
+                />
               </div>
             </div>
           </div>
         </div>
+
+        {/* Bento Grid Layout for Inputs & Results */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Usage Input Card */}
+          <div className="bg-white/90 backdrop-blur-xl p-6 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 flex flex-col">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-[#EFF6FF] text-[#3B82F6] rounded-xl">
+                <Activity className="w-6 h-6" />
+              </div>
+              <h2 className="text-xl font-bold text-[#1E1B4B]">
+                预估使用量
+              </h2>
+            </div>
+            
+            <div className="space-y-5 flex-1 justify-center flex flex-col">
+              <div className="relative">
+                <label className="block text-sm font-bold text-[#64748B] mb-2 pl-1">输入 Tokens</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full px-4 py-3.5 border-2 border-[#E2E8F0] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-lg transition-colors"
+                  placeholder="10000"
+                  value={inputTokens}
+                  onChange={(e) => setInputTokens(e.target.value)}
+                />
+              </div>
+              <div className="relative">
+                <label className="block text-sm font-bold text-[#64748B] mb-2 pl-1">输出 Tokens</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="w-full px-4 py-3.5 border-2 border-[#E2E8F0] rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-lg transition-colors"
+                  placeholder="2000"
+                  value={outputTokens}
+                  onChange={(e) => setOutputTokens(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Config & Detail Breakdown Card */}
+          <div className="bg-white/90 backdrop-blur-xl p-6 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 flex flex-col">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-[#FEF3C7] text-[#F59E0B] rounded-xl">
+                <Coins className="w-6 h-6" />
+              </div>
+              <h2 className="text-xl font-bold text-[#1E1B4B]">
+                计费配置与明细
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]/50">
+                <label className="block text-xs font-bold text-[#64748B] mb-1">损耗率</label>
+                <input
+                  type="number"
+                  step="any"
+                  className="w-full p-0 border-0 bg-transparent focus:ring-0 text-lg font-bold text-[#1E1B4B]"
+                  value={lossRate}
+                  onChange={(e) => setLossRate(e.target.value)}
+                />
+              </div>
+              <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]/50">
+                <label className="block text-xs font-bold text-[#64748B] mb-1">利润率</label>
+                <input
+                  type="number"
+                  step="any"
+                  className="w-full p-0 border-0 bg-transparent focus:ring-0 text-lg font-bold text-[#1E1B4B]"
+                  value={profitMargin}
+                  onChange={(e) => setProfitMargin(e.target.value)}
+                />
+              </div>
+              <div className="bg-[#F8FAFC] p-3 rounded-2xl border border-[#E2E8F0]/50">
+                <label className="block text-xs font-bold text-[#64748B] mb-1">点数系数</label>
+                <input
+                  type="number"
+                  step="any"
+                  className="w-full p-0 border-0 bg-transparent focus:ring-0 text-lg font-bold text-[#1E1B4B]"
+                  value={pointCoefficient}
+                  onChange={(e) => setPointCoefficient(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 bg-[#F8FAFC] rounded-2xl p-4 border border-[#E2E8F0]/50 space-y-3">
+              <h3 className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider mb-2">成本预估明细</h3>
+              <div className="flex justify-between text-sm font-medium text-[#64748B]">
+                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#3B82F6]" />输入成本</span>
+                <span className="text-[#1E1B4B]">¥{((parseFloat(inputTokens) || 0) / 1000 * (parseFloat(inputPrice) || 0)).toFixed(4)}</span>
+              </div>
+              <div className="flex justify-between text-sm font-medium text-[#64748B]">
+                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#F59E0B]" />输出成本</span>
+                <span className="text-[#1E1B4B]">¥{((parseFloat(outputTokens) || 0) / 1000 * (parseFloat(outputPrice) || 0)).toFixed(4)}</span>
+              </div>
+              <div className="pt-3 mt-1 border-t border-[#E2E8F0] flex justify-between font-bold text-base">
+                <span className="text-[#1E1B4B]">基础总成本</span>
+                <span className="text-[#7C3AED]">¥{(((parseFloat(inputTokens) || 0) / 1000 * (parseFloat(inputPrice) || 0)) + ((parseFloat(outputTokens) || 0) / 1000 * (parseFloat(outputPrice) || 0))).toFixed(4)}</span>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
         {isDropdownOpen &&
           createPortal(
             <div
@@ -416,13 +409,13 @@ function App() {
               className="fixed z-[9999]"
               style={{ left: dropdownPos.left, top: dropdownPos.top, width: dropdownPos.width }}
             >
-              <div className="bg-white border border-slate-200 rounded-lg shadow-2xl max-h-80 overflow-auto ring-1 ring-violet-200/60">
+              <div className="bg-white/95 backdrop-blur-xl border border-[#E2E8F0] rounded-2xl shadow-[0_20px_40px_rgb(0,0,0,0.1)] max-h-[360px] overflow-auto ring-1 ring-[#7C3AED]/10 overflow-hidden">
                 {filteredProviders.length > 0 ? (
                   <div className="py-2">
                     {filteredProviders.map((provider) => (
                       <div key={provider.id} className="mb-2 last:mb-0">
-                        <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-900 bg-violet-50/60 sticky top-0 backdrop-blur-sm z-10">
-                          <span className="flex items-center justify-center">{provider.icon}</span>
+                        <div className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[#1E1B4B] bg-[#F8FAFC]/90 sticky top-0 backdrop-blur-md z-10 border-y border-[#E2E8F0]/50 first:border-t-0">
+                          <span className="flex items-center justify-center scale-90">{provider.icon}</span>
                           {provider.name}
                         </div>
                         <ul className="py-1">
@@ -430,13 +423,15 @@ function App() {
                             <li
                               key={model.id}
                               className={cn(
-                                "px-3 py-2 text-sm cursor-pointer hover:bg-violet-50 flex items-center justify-between pl-10",
-                                selectedModel?.id === model.id && "bg-violet-50 text-violet-700 font-medium"
+                                "px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center justify-between pl-11",
+                                selectedModel?.id === model.id 
+                                  ? "bg-[#F5EFFF] text-[#7C3AED] font-bold" 
+                                  : "text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#1E1B4B] font-medium"
                               )}
                               onClick={() => handleSelectModel(model)}
                             >
                               <span>{model.name}</span>
-                              {selectedModel?.id === model.id && <Check className="w-4 h-4" />}
+                              {selectedModel?.id === model.id && <Check className="w-4 h-4 text-[#7C3AED]" />}
                             </li>
                           ))}
                         </ul>
@@ -444,7 +439,7 @@ function App() {
                     ))}
                   </div>
                 ) : (
-                  <div className="px-3 py-4 text-sm text-slate-500 text-center">未找到匹配的模型</div>
+                  <div className="px-4 py-8 text-sm font-medium text-[#94A3B8] text-center">未找到匹配的模型</div>
                 )}
               </div>
             </div>,
