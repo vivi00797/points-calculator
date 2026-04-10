@@ -1,0 +1,291 @@
+:root {
+    /* Color Palette - Light Mode */
+    --bg-color: #ffffff;
+    --bg-secondary: #f9fafb;
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --accent-color: #2563eb;
+    --accent-hover: #1d4ed8;
+    --card-bg: #ffffff;
+    --border-color: #e5e7eb;
+    
+    /* Spacing & Layout */
+    --container-width: 1000px;
+    --header-height: 70px;
+    --radius-md: 12px;
+}
+
+[data-theme="dark"] {
+    --bg-color: #111827;
+    --bg-secondary: #0f172a; 
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --accent-color: #60a5fa;
+    --accent-hover: #3b82f6;
+    --card-bg: #1f2937;
+    --border-color: #374151;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s ease;
+}
+
+ul {
+    list-style: none;
+}
+
+.container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.site-header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-color);
+    z-index: 100;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.site-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+}
+
+.main-nav {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.main-nav ul {
+    display: flex;
+    gap: 25px;
+}
+
+.main-nav a {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.main-nav a:hover, .main-nav a.active {
+    color: var(--text-primary);
+}
+
+/* Theme Toggle */
+#theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 5px;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+#theme-toggle:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+}
+
+.sun-icon {
+    display: none;
+}
+
+.moon-icon {
+    display: block;
+}
+
+[data-theme="dark"] .sun-icon {
+    display: block;
+}
+
+[data-theme="dark"] .moon-icon {
+    display: none;
+}
+
+/* Hero Section */
+.hero {
+    padding: 80px 0 60px;
+    text-align: left;
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    line-height: 1.2;
+    letter-spacing: -1px;
+}
+
+.hero p {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+}
+
+/* Articles Section */
+.articles {
+    padding: 40px 0 80px;
+}
+
+.articles h2 {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    border-color: var(--accent-color);
+}
+
+.card-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.tag {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.card h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.card p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    flex-grow: 1; /* Pushes button down if cards have different heights */
+}
+
+.read-more {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-top: auto;
+}
+
+.read-more:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+/* Footer */
+.site-footer {
+    padding: 40px 0;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 40px;
+    transition: border-color 0.3s ease;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero p {
+        font-size: 1.1rem;
+    }
+
+    .main-nav {
+        gap: 15px;
+    }
+
+    .main-nav ul {
+        display: none; /* Simplify for mobile for now, or just smaller text */
+        /* To make it fully mobile responsive, we'd typically add a hamburger menu. 
+           For simplicity in this task, I'll just adjust spacing or keep it if it fits. 
+           Let's hide links on very small screens or make them small. 
+           Actually, let's keep them but make them smaller. */
+    }
+    
+    .main-nav ul {
+        display: flex;
+        font-size: 0.9rem;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .site-header .container {
+        flex-wrap: wrap;
+    }
+    
+    .hero {
+        padding: 50px 0 30px;
+    }
+    
+    .hero h1 {
+        font-size: 2rem;
+    }
+}

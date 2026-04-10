@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未来学院 | 顶尖AI课程平台</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">ToAI <span>未来学院</span></div>
+        <nav>
+            <button id="nav-home" class="active">课程大厅</button>
+            <button id="nav-about">关于我们</button>
+        </nav>
+    </header>
+
+    <main id="app">
+        <!-- Dynamic Content will be rendered here -->
+    </main>
+
+    <!-- Purchase Modal -->
+    <div id="purchase-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3>扫码加入学习</h3>
+            <p>开启您的 AI 之旅</p>
+            <div class="qr-placeholder">
+                <!-- In a real app, this would be a dynamic QR code -->
+                <div class="qr-code"></div>
+            </div>
+            <p class="price-tag">¥ <span id="modal-price">0</span></p>
+            <p class="modal-time">限时优惠中</p>
+        </div>
+    </div>
+
+    <!-- Chatbox Widget -->
+    <div id="chat-widget" class="chat-widget closed">
+        <div class="chat-header">
+            <div class="chat-status"></div>
+            <span>AI 课程顾问</span>
+            <button class="chat-toggle-btn">&times;</button>
+        </div>
+        <div class="chat-body" id="chat-messages">
+            <div class="message bot">
+                <div class="avatar">AI</div>
+                <div class="text">你好！我是您的专属课程顾问。对哪门课程感兴趣？我可以帮您详细介绍。</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="输入您的问题...">
+            <button id="send-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Floating Chat Button (Visible when chat is closed) -->
+    <button id="chat-float-btn" class="chat-float-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </button>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

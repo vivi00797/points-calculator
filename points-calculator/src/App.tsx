@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Calculator, Settings, Info, ChevronDown, Check } from "lucide-react";
+import { Calculator, Settings, Info, ChevronDown, Check, RefreshCw } from "lucide-react";
 import { providers, type LLMModel, type ModelProvider } from "./data/models";
 import { cn } from "./lib/utils";
 
@@ -12,6 +12,7 @@ function App() {
   const modelSelectAnchorRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [dropdownPos, setDropdownPos] = useState({ left: 0, top: 0, width: 0 });
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const [inputTokens, setInputTokens] = useState<string>("");
   const [outputTokens, setOutputTokens] = useState<string>("");
@@ -36,6 +37,51 @@ function App() {
     setOutputPrice(model.outputPrice.toString());
     setIsDropdownOpen(false);
     setSearch("");
+  };
+
+  const handleUpdatePrices = async () => {
+    setIsUpdating(true);
+    try {
+      const res = await fetch("https://points-calculator-api.onrender.com/api/prices/update", { 
+        method: "POST",
+        cache: "no-store" 
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      
+      if (data && data.data && Array.isArray(data.data)) {
+        const grouped: Record<string, LLMModel[]> = {
+          alibaba: [],
+          volcengine: [],
+          deepseek: []
+        };
+
+        data.data.forEach((item: any) => {
+          if (item.provider && grouped[item.provider]) {
+            grouped[item.provider].push({
+              id: item.id,
+              name: item.name,
+              inputPrice: item.inputPrice,
+              outputPrice: item.outputPrice
+            });
+          }
+        });
+
+        setProvidersData(prev => prev.map(provider => {
+          const liveModels = grouped[provider.id];
+          if (liveModels && liveModels.length > 0) {
+            return { ...provider, models: liveModels };
+          }
+          return provider;
+        }));
+      }
+    } catch (err) {
+      console.warn('Failed to update prices:', err);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   useEffect(() => {
@@ -165,17 +211,27 @@ function App() {
             点数换算小工具
           </h1>
           <p className="text-slate-500 max-w-2xl mx-auto">
-            供内部运营人员快速计算点数配置，供外部客户预估大模型 API 费用。
+            仅限内部人员使用，不可给客户提供
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-8 items-start">
           <div className="space-y-6">
             <div className="bg-white/75 backdrop-blur-md p-6 rounded-2xl shadow-sm ring-1 ring-violet-200/60">
-              <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-                <Settings className="w-5 h-5 text-slate-400" />
-                1. 选择模型与单价
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-slate-400" />
+                  1. 选择模型与单价
+                </h2>
+                <button
+                  onClick={handleUpdatePrices}
+                  disabled={isUpdating}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-violet-700 bg-violet-100 rounded-md hover:bg-violet-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RefreshCw className={cn("w-4 h-4", isUpdating && "animate-spin")} />
+                  {isUpdating ? "更新中..." : "更新"}
+                </button>
+              </div>
               
               <div className="space-y-4">
                 <div className="relative">

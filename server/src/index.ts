@@ -21,6 +21,20 @@ app.get('/api/prices', (req, res) => {
   });
 });
 
+// The endpoint to trigger a manual update
+app.post('/api/prices/update', async (req, res) => {
+  if (updating) {
+    return res.status(409).json({ error: 'Update already in progress' });
+  }
+  
+  await updatePrices();
+  
+  res.json({
+    data: cachedPrices,
+    lastUpdated
+  });
+});
+
 // Update job
 async function updatePrices() {
   if (updating) {
