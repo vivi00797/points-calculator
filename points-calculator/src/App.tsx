@@ -78,7 +78,7 @@ function App() {
           }
         });
 
-        setProvidersData(prev => {
+        setProvidersData(() => {
           return providers.map(provider => {
             // Start fresh from the original fallbacks defined in models.ts
             const existingModels = [...provider.models];
@@ -149,7 +149,7 @@ function App() {
               }
             });
 
-            setProvidersData(prev => {
+            setProvidersData(() => {
               return providers.map(provider => {
                 // Start fresh from the original fallbacks defined in models.ts
                 const existingModels = [...provider.models];
