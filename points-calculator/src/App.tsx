@@ -78,27 +78,29 @@ function App() {
           }
         });
 
-        setProvidersData(prev => prev.map(provider => {
-          // Merge existing models (like fallbacks) with new live models
-          const existingModels = [...provider.models];
-          const liveModels = grouped[provider.id] || [];
-          
-          liveModels.forEach(liveModel => {
-            const existingIndex = existingModels.findIndex(m => m.id === liveModel.id);
-            if (existingIndex >= 0) {
-              existingModels[existingIndex] = liveModel; // Update price if already exists
-            } else {
-              existingModels.push(liveModel); // Add if it's a new model
-            }
-          });
+        setProvidersData(prev => {
+          return providers.map(provider => {
+            // Start fresh from the original fallbacks defined in models.ts
+            const existingModels = [...provider.models];
+            const liveModels = grouped[provider.id] || [];
+            
+            liveModels.forEach(liveModel => {
+              const existingIndex = existingModels.findIndex(m => m.id === liveModel.id);
+              if (existingIndex >= 0) {
+                existingModels[existingIndex] = liveModel; // Update price if already exists
+              } else {
+                existingModels.push(liveModel); // Add if it's a new model
+              }
+            });
 
-          if (existingModels.length > 0) {
-            // Sort models to ensure consistent order
-            existingModels.sort((a, b) => a.name.localeCompare(b.name));
-            return { ...provider, models: existingModels };
-          }
-          return provider;
-        }));
+            if (existingModels.length > 0) {
+              // Sort models to ensure consistent order
+              existingModels.sort((a, b) => a.name.localeCompare(b.name));
+              return { ...provider, models: existingModels };
+            }
+            return provider;
+          });
+        });
       }
     } catch (err) {
       console.warn('Failed to update prices:', err);
@@ -147,27 +149,29 @@ function App() {
               }
             });
 
-            setProvidersData(prev => prev.map(provider => {
-              // Merge existing models (like fallbacks) with new live models
-              const existingModels = [...provider.models];
-              const liveModels = grouped[provider.id] || [];
-              
-              liveModels.forEach(liveModel => {
-                const existingIndex = existingModels.findIndex(m => m.id === liveModel.id);
-                if (existingIndex >= 0) {
-                  existingModels[existingIndex] = liveModel; // Update price if already exists
-                } else {
-                  existingModels.push(liveModel); // Add if it's a new model
-                }
-              });
+            setProvidersData(prev => {
+              return providers.map(provider => {
+                // Start fresh from the original fallbacks defined in models.ts
+                const existingModels = [...provider.models];
+                const liveModels = grouped[provider.id] || [];
+                
+                liveModels.forEach(liveModel => {
+                  const existingIndex = existingModels.findIndex(m => m.id === liveModel.id);
+                  if (existingIndex >= 0) {
+                    existingModels[existingIndex] = liveModel; // Update price if already exists
+                  } else {
+                    existingModels.push(liveModel); // Add if it's a new model
+                  }
+                });
 
-              if (existingModels.length > 0) {
-                // Sort models to ensure consistent order
-                existingModels.sort((a, b) => a.name.localeCompare(b.name));
-                return { ...provider, models: existingModels };
-              }
-              return provider;
-            }));
+                if (existingModels.length > 0) {
+                  // Sort models to ensure consistent order
+                  existingModels.sort((a, b) => a.name.localeCompare(b.name));
+                  return { ...provider, models: existingModels };
+                }
+                return provider;
+              });
+            });
           }
           return;
         } catch (err) {
