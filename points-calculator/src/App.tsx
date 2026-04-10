@@ -42,7 +42,10 @@ function App() {
   const handleUpdatePrices = async () => {
     setIsUpdating(true);
     try {
-      const res = await fetch("https://points-calculator-api.onrender.com/api/prices/update", { 
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? "http://localhost:3001/api/prices/update" : "https://points-calculator-api.onrender.com/api/prices/update";
+      
+      const res = await fetch(apiUrl, { 
         method: "POST",
         cache: "no-store" 
       });
@@ -90,7 +93,9 @@ function App() {
   };
 
   useEffect(() => {
-    const apiUrl = "https://points-calculator-api.onrender.com/api/prices";
+    // Use local dev server if running on localhost, otherwise use production API
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiUrl = isLocalhost ? "http://localhost:3001/api/prices" : "https://points-calculator-api.onrender.com/api/prices";
 
     const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
