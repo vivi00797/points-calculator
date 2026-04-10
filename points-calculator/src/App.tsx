@@ -14,6 +14,9 @@ function App() {
   const [dropdownPos, setDropdownPos] = useState({ left: 0, top: 0, width: 0 });
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const [calcMode, setCalcMode] = useState<'tokens' | 'amount'>('tokens');
+  const [inputAmount, setInputAmount] = useState<string>("");
+
   const [inputTokens, setInputTokens] = useState<string>("");
   const [outputTokens, setOutputTokens] = useState<string>("");
   const [inputPrice, setInputPrice] = useState<string>("");
@@ -197,9 +200,34 @@ function App() {
     };
   }, [isDropdownOpen]);
 
+  const effectiveTokens = useMemo(() => {
+    const pIn = parseFloat(inputPrice) || 0;
+    const pOut = parseFloat(outputPrice) || 0;
+    
+    if (calcMode === 'amount') {
+      const amt = parseFloat(inputAmount) || 0;
+      // amt = (inTokens / 1000) * pIn + (outTokens / 1000) * pOut
+      // constraint: inTokens = 2 * outTokens
+      // amt = (2 * outTokens / 1000) * pIn + (outTokens / 1000) * pOut
+      // amt = (outTokens / 1000) * (2 * pIn + pOut)
+      // outTokens = (amt * 1000) / (2 * pIn + pOut)
+      const costPer1kOutAnd2kIn = (2 * pIn) + pOut;
+      if (costPer1kOutAnd2kIn > 0) {
+        const outT = (amt * 1000) / costPer1kOutAnd2kIn;
+        const inT = outT * 2;
+        return { in: inT, out: outT };
+      }
+      return { in: 0, out: 0 };
+    }
+    
+    return {
+      in: parseFloat(inputTokens) || 0,
+      out: parseFloat(outputTokens) || 0
+    };
+  }, [calcMode, inputAmount, inputTokens, outputTokens, inputPrice, outputPrice]);
+
   const pointsResult = useMemo(() => {
-    const inTokens = parseFloat(inputTokens) || 0;
-    const outTokens = parseFloat(outputTokens) || 0;
+    const { in: inTokens, out: outTokens } = effectiveTokens;
     const inPrice = parseFloat(inputPrice) || 0;
     const outPrice = parseFloat(outputPrice) || 0;
     const lossR = parseFloat(lossRate) || 0;
@@ -211,7 +239,7 @@ function App() {
     const cost = (inTokens / 1000) * inPrice + (outTokens / 1000) * outPrice;
     const points = (cost * lossR * profitM) / coeff;
     return points;
-  }, [inputTokens, outputTokens, inputPrice, outputPrice, lossRate, profitMargin, pointCoefficient]);
+  }, [effectiveTokens, inputPrice, outputPrice, lossRate, profitMargin, pointCoefficient]);
 
   return (
     <div className="min-h-screen text-[#1E1B4B] py-4 px-4 sm:px-6 lg:px-8 font-sans bg-gradient-to-b from-[#E6E9FF] via-[#F5EFFF] to-[#FFFFFF] relative overflow-hidden flex flex-col justify-center items-center">
@@ -315,37 +343,92 @@ function App() {
 
             {/* Usage Card */}
             <div className="bg-white/90 backdrop-blur-xl p-5 rounded-[28px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-[#EFF6FF] text-[#3B82F6] rounded-xl">
-                  <Activity className="w-5 h-5" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#EFF6FF] text-[#3B82F6] rounded-xl">
+                    <Activity className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-base font-bold text-[#1E1B4B]">预估使用量</h2>
                 </div>
-                <h2 className="text-base font-bold text-[#1E1B4B]">预估使用量</h2>
+                
+                {/* Mode Switcher */}
+                <div className="flex bg-[#F1F5F9] p-1 rounded-xl shadow-inner">
+                  <button
+                    onClick={() => setCalcMode('tokens')}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-bold rounded-lg transition-all",
+                      calcMode === 'tokens' 
+                        ? "bg-white text-[#3B82F6] shadow-sm" 
+                        : "text-[#64748B] hover:text-[#1E1B4B]"
+                    )}
+                  >
+                    按 Tokens
+                  </button>
+                  <button
+                    onClick={() => setCalcMode('amount')}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-bold rounded-lg transition-all",
+                      calcMode === 'amount' 
+                        ? "bg-white text-[#3B82F6] shadow-sm" 
+                        : "text-[#64748B] hover:text-[#1E1B4B]"
+                    )}
+                  >
+                    按金额
+                  </button>
+                </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
-                  <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">输入 Tokens</label>
-                  <input
-                    type="number"
-                    min="0"
-                    className="w-full px-4 py-2.5 border-2 border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors"
-                    placeholder="10000"
-                    value={inputTokens}
-                    onChange={(e) => setInputTokens(e.target.value)}
-                  />
+              {calcMode === 'tokens' ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">输入 Tokens</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="w-full px-4 py-2.5 border-2 border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors"
+                      placeholder="10000"
+                      value={inputTokens}
+                      onChange={(e) => setInputTokens(e.target.value)}
+                    />
+                  </div>
+                  <div className="relative">
+                    <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">输出 Tokens</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="w-full px-4 py-2.5 border-2 border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors"
+                      placeholder="2000"
+                      value={outputTokens}
+                      onChange={(e) => setOutputTokens(e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div className="relative">
-                  <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">输出 Tokens</label>
-                  <input
-                    type="number"
-                    min="0"
-                    className="w-full px-4 py-2.5 border-2 border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors"
-                    placeholder="2000"
-                    value={outputTokens}
-                    onChange={(e) => setOutputTokens(e.target.value)}
-                  />
+              ) : (
+                <div className="space-y-4">
+                  <div className="relative">
+                    <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">预估总金额 <span className="text-[#94A3B8] font-normal">(¥)</span></label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      className="w-full px-4 py-2.5 border-2 border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors"
+                      placeholder="例如: 100"
+                      value={inputAmount}
+                      onChange={(e) => setInputAmount(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0]/50">
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#94A3B8] mb-1">推算输入 Tokens <span className="font-normal">(2)</span></label>
+                      <div className="text-sm font-bold text-[#64748B]">{Math.round(effectiveTokens.in).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[#94A3B8] mb-1">推算输出 Tokens <span className="font-normal">(1)</span></label>
+                      <div className="text-sm font-bold text-[#64748B]">{Math.round(effectiveTokens.out).toLocaleString()}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -408,15 +491,15 @@ function App() {
               <div className="flex-1 bg-[#F8FAFC] rounded-2xl p-3 border border-[#E2E8F0]/50 flex flex-col justify-center gap-2">
                 <div className="flex justify-between text-[11px] font-bold text-[#64748B]">
                   <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />输入成本</span>
-                  <span className="text-[#1E1B4B]">¥{((parseFloat(inputTokens) || 0) / 1000 * (parseFloat(inputPrice) || 0)).toFixed(4)}</span>
+                  <span className="text-[#1E1B4B]">¥{((effectiveTokens.in / 1000) * (parseFloat(inputPrice) || 0)).toFixed(4)}</span>
                 </div>
                 <div className="flex justify-between text-[11px] font-bold text-[#64748B]">
                   <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />输出成本</span>
-                  <span className="text-[#1E1B4B]">¥{((parseFloat(outputTokens) || 0) / 1000 * (parseFloat(outputPrice) || 0)).toFixed(4)}</span>
+                  <span className="text-[#1E1B4B]">¥{((effectiveTokens.out / 1000) * (parseFloat(outputPrice) || 0)).toFixed(4)}</span>
                 </div>
                 <div className="pt-2 mt-1 border-t border-[#E2E8F0] flex justify-between font-black text-[13px]">
                   <span className="text-[#1E1B4B]">基础总成本</span>
-                  <span className="text-[#7C3AED]">¥{(((parseFloat(inputTokens) || 0) / 1000 * (parseFloat(inputPrice) || 0)) + ((parseFloat(outputTokens) || 0) / 1000 * (parseFloat(outputPrice) || 0))).toFixed(4)}</span>
+                  <span className="text-[#7C3AED]">¥{(((effectiveTokens.in / 1000) * (parseFloat(inputPrice) || 0)) + ((effectiveTokens.out / 1000) * (parseFloat(outputPrice) || 0))).toFixed(4)}</span>
                 </div>
               </div>
             </div>
@@ -432,10 +515,10 @@ function App() {
             >
               <div className="bg-white/95 backdrop-blur-xl border border-[#E2E8F0] rounded-2xl shadow-[0_20px_40px_rgb(0,0,0,0.1)] ring-1 ring-[#7C3AED]/10 overflow-hidden flex flex-col max-h-[360px]">
                 {filteredProviders.length > 0 ? (
-                  <div className="py-2 overflow-y-auto overscroll-contain flex-1">
+                  <div className="overflow-y-auto overscroll-contain flex-1 max-h-[360px] pb-2">
                     {filteredProviders.map((provider) => (
-                      <div key={provider.id} className="mb-2 last:mb-0">
-                        <div className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[#1E1B4B] bg-[#F8FAFC]/95 sticky top-0 backdrop-blur-xl z-10 border-y border-[#E2E8F0]/80 first:border-t-0 shadow-sm">
+                      <div key={provider.id} className="mb-0">
+                        <div className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-[#1E1B4B] bg-[#F8FAFC]/95 sticky top-0 backdrop-blur-xl z-10 border-b border-[#E2E8F0]/80 shadow-sm">
                           <span className="flex items-center justify-center scale-90">{provider.icon}</span>
                           {provider.name}
                         </div>
