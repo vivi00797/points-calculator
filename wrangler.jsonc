@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "points-calculator",
+  "compatibility_date": "2026-04-10",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "blog项目"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd points-calculator && npm install && npm run build"
+    "build": "cd points-calculator && npm install && npm run build",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.81.1"
   }
 }
