@@ -13,14 +13,44 @@ type ScrapedModel = { id: string; name: string; inputPrice: number; outputPrice:
 export const FALLBACK_PRICES: ModelPrice[] = [
   { id: "deepseek-chat", name: "DeepSeek Chat (V3)", provider: "deepseek", inputPrice: 0.002, outputPrice: 0.008 },
   { id: "deepseek-reasoner", name: "DeepSeek Reasoner (R1)", provider: "deepseek", inputPrice: 0.004, outputPrice: 0.016 },
+  
   { id: "doubao-pro-32k", name: "Doubao-pro-32k", provider: "volcengine", inputPrice: 0.0008, outputPrice: 0.002 },
   { id: "doubao-lite-32k", name: "Doubao-lite-32k", provider: "volcengine", inputPrice: 0.0003, outputPrice: 0.0006 },
   { id: "doubao-pro-128k", name: "Doubao-pro-128k", provider: "volcengine", inputPrice: 0.005, outputPrice: 0.009 },
   { id: "doubao-lite-128k", name: "Doubao-lite-128k", provider: "volcengine", inputPrice: 0.0008, outputPrice: 0.0015 },
+  
+  // 阿里云模型（由于阿里云防爬虫拦截Render美国节点，将完整列表内置作为稳定数据源）
+  { id: "qwen3-max", name: "qwen3-max", provider: "alibaba", inputPrice: 0.0025, outputPrice: 0.01 },
+  { id: "qwen3-max-2026-01-23", name: "qwen3-max-2026-01-23", provider: "alibaba", inputPrice: 0.0025, outputPrice: 0.01 },
+  { id: "qwen3-max-2025-09-23", name: "qwen3-max-2025-09-23", provider: "alibaba", inputPrice: 0.006, outputPrice: 0.024 },
+  { id: "qwen3-max-preview", name: "qwen3-max-preview", provider: "alibaba", inputPrice: 0.006, outputPrice: 0.024 },
+  
   { id: "qwen-max", name: "qwen-max", provider: "alibaba", inputPrice: 0.0024, outputPrice: 0.0096 },
+  { id: "qwen-max-2024-09-19", name: "qwen-max-2024-09-19", provider: "alibaba", inputPrice: 0.02, outputPrice: 0.06 },
+  { id: "qwen-max-2024-04-28", name: "qwen-max-2024-04-28", provider: "alibaba", inputPrice: 0.04, outputPrice: 0.12 },
+  { id: "qwen-max-latest", name: "qwen-max-latest", provider: "alibaba", inputPrice: 0.011743, outputPrice: 0.046971 },
+  
   { id: "qwen-plus", name: "qwen-plus", provider: "alibaba", inputPrice: 0.0008, outputPrice: 0.002 },
+  { id: "qwen-plus-2025-07-14", name: "qwen-plus-2025-07-14", provider: "alibaba", inputPrice: 0.0008, outputPrice: 0.008 },
+  { id: "qwen-plus-2025-01-25", name: "qwen-plus-2025-01-25", provider: "alibaba", inputPrice: 0.0008, outputPrice: 0.002 },
+  { id: "qwen-plus-latest", name: "qwen-plus-latest", provider: "alibaba", inputPrice: 0.001541, outputPrice: 0.004624 },
+  
+  { id: "qwen3.5-flash", name: "qwen3.5-flash", provider: "alibaba", inputPrice: 0.000734, outputPrice: 0.002936 },
   { id: "qwen-turbo", name: "qwen-turbo", provider: "alibaba", inputPrice: 0.0003, outputPrice: 0.0006 },
   { id: "qwen-long", name: "qwen-long", provider: "alibaba", inputPrice: 0.0005, outputPrice: 0.002 },
+  
+  { id: "qwen-vl-max", name: "qwen-vl-max", provider: "alibaba", inputPrice: 0.0016, outputPrice: 0.004 },
+  { id: "qwen-vl-max-2025-08-13", name: "qwen-vl-max-2025-08-13", provider: "alibaba", inputPrice: 0.0016, outputPrice: 0.004 },
+  { id: "qwen-vl-max-2025-04-08", name: "qwen-vl-max-2025-04-08", provider: "alibaba", inputPrice: 0.003, outputPrice: 0.009 },
+  { id: "qwen-vl-max-2024-12-30", name: "qwen-vl-max-2024-12-30", provider: "alibaba", inputPrice: 0.003, outputPrice: 0.009 },
+  { id: "qwen-vl-max-latest", name: "qwen-vl-max-latest", provider: "alibaba", inputPrice: 0.005871, outputPrice: 0.023486 },
+  
+  { id: "qwen-vl-plus", name: "qwen-vl-plus", provider: "alibaba", inputPrice: 0.0008, outputPrice: 0.002 },
+  { id: "qwen-vl-plus-2025-08-15", name: "qwen-vl-plus-2025-08-15", provider: "alibaba", inputPrice: 0.0008, outputPrice: 0.002 },
+  { id: "qwen-vl-plus-2025-07-10", name: "qwen-vl-plus-2025-07-10", provider: "alibaba", inputPrice: 0.00015, outputPrice: 0.0015 },
+  { id: "qwen-vl-plus-2025-05-07", name: "qwen-vl-plus-2025-05-07", provider: "alibaba", inputPrice: 0.0015, outputPrice: 0.0045 },
+  { id: "qwen-vl-plus-2025-01-02", name: "qwen-vl-plus-2025-01-02", provider: "alibaba", inputPrice: 0.0015, outputPrice: 0.0045 },
+  { id: "qwen-vl-plus-latest", name: "qwen-vl-plus-latest", provider: "alibaba", inputPrice: 0.001541, outputPrice: 0.004624 },
 ];
 
 export async function scrapePrices(): Promise<ModelPrice[]> {
