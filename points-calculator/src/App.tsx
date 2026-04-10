@@ -16,6 +16,8 @@ function App() {
 
   const [calcMode, setCalcMode] = useState<'tokens' | 'amount'>('tokens');
   const [inputAmount, setInputAmount] = useState<string>("");
+  const [ratioIn, setRatioIn] = useState<string>("2");
+  const [ratioOut, setRatioOut] = useState<string>("1");
 
   const [inputTokens, setInputTokens] = useState<string>("");
   const [outputTokens, setOutputTokens] = useState<string>("");
@@ -234,15 +236,18 @@ function App() {
     
     if (calcMode === 'amount') {
       const amt = parseFloat(inputAmount) || 0;
+      const rIn = parseFloat(ratioIn) || 0;
+      const rOut = parseFloat(ratioOut) || 0;
+      if (rIn <= 0 || rOut <= 0) return { in: 0, out: 0 };
+      const ratio = rIn / rOut;
       // amt = (inTokens / 1000) * pIn + (outTokens / 1000) * pOut
-      // constraint: inTokens = 2 * outTokens
-      // amt = (2 * outTokens / 1000) * pIn + (outTokens / 1000) * pOut
-      // amt = (outTokens / 1000) * (2 * pIn + pOut)
-      // outTokens = (amt * 1000) / (2 * pIn + pOut)
-      const costPer1kOutAnd2kIn = (2 * pIn) + pOut;
-      if (costPer1kOutAnd2kIn > 0) {
-        const outT = (amt * 1000) / costPer1kOutAnd2kIn;
-        const inT = outT * 2;
+      // constraint: inTokens:outTokens = ratioIn:ratioOut
+      // amt = (outTokens / 1000) * (pIn * (ratioIn/ratioOut) + pOut)
+      // outTokens = (amt * 1000) / (pIn * (ratioIn/ratioOut) + pOut)
+      const costPer1kOut = (pIn * ratio) + pOut;
+      if (costPer1kOut > 0) {
+        const outT = (amt * 1000) / costPer1kOut;
+        const inT = outT * ratio;
         return { in: inT, out: outT };
       }
       return { in: 0, out: 0 };
@@ -252,9 +257,26 @@ function App() {
       in: parseFloat(inputTokens) || 0,
       out: parseFloat(outputTokens) || 0
     };
-  }, [calcMode, inputAmount, inputTokens, outputTokens, inputPrice, outputPrice]);
+  }, [calcMode, inputAmount, inputTokens, outputTokens, inputPrice, outputPrice, ratioIn, ratioOut]);
+
+  const calcWarning = useMemo(() => {
+    const hasUsage =
+      calcMode === "tokens"
+        ? inputTokens.trim() !== "" || outputTokens.trim() !== ""
+        : inputAmount.trim() !== "";
+
+    const inPrice = parseFloat(inputPrice) || 0;
+    const outPrice = parseFloat(outputPrice) || 0;
+    const hasBothPrices = inPrice > 0 && outPrice > 0;
+
+    if (hasUsage && !selectedModel && !hasBothPrices) {
+      return "请先选择模型（或填写输入/输出单价）后再查看计算结果";
+    }
+    return "";
+  }, [calcMode, inputTokens, outputTokens, inputAmount, selectedModel, inputPrice, outputPrice]);
 
   const pointsResult = useMemo(() => {
+    if (calcWarning) return 0;
     const { in: inTokens, out: outTokens } = effectiveTokens;
     const inPrice = parseFloat(inputPrice) || 0;
     const outPrice = parseFloat(outputPrice) || 0;
@@ -267,7 +289,7 @@ function App() {
     const cost = (inTokens / 1000) * inPrice + (outTokens / 1000) * outPrice;
     const points = (cost * lossR * profitM) / coeff;
     return points;
-  }, [effectiveTokens, inputPrice, outputPrice, lossRate, profitMargin, pointCoefficient]);
+  }, [calcWarning, effectiveTokens, inputPrice, outputPrice, lossRate, profitMargin, pointCoefficient]);
 
   return (
     <div className="min-h-screen text-[#1E1B4B] py-4 px-4 sm:px-6 lg:px-8 font-sans bg-gradient-to-b from-[#E6E9FF] via-[#F5EFFF] to-[#FFFFFF] relative overflow-hidden flex flex-col justify-center items-center">
@@ -405,31 +427,46 @@ function App() {
                   </button>
                 </div>
               </div>
-              
+
               {calcMode === 'tokens' ? (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="relative">
-                    <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">输入 Tokens</label>
-                    <input
-                      type="number"
-                      min="0"
-                      className="w-full px-4 py-2.5 border-2 border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors"
-                      placeholder="10000"
-                      value={inputTokens}
-                      onChange={(e) => setInputTokens(e.target.value)}
-                    />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="relative">
+                      <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">输入 Tokens</label>
+                      <input
+                        type="number"
+                        min="0"
+                        className={cn(
+                          "w-full px-4 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-4 bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors",
+                          calcWarning
+                            ? "border-red-400 focus:ring-red-400/20 focus:border-red-500"
+                            : "border-[#E2E8F0] focus:ring-[#3B82F6]/20 focus:border-[#3B82F6]"
+                        )}
+                        placeholder="10000"
+                        value={inputTokens}
+                        onChange={(e) => setInputTokens(e.target.value)}
+                      />
+                    </div>
+                    <div className="relative">
+                      <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">输出 Tokens</label>
+                      <input
+                        type="number"
+                        min="0"
+                        className={cn(
+                          "w-full px-4 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-4 bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors",
+                          calcWarning
+                            ? "border-red-400 focus:ring-red-400/20 focus:border-red-500"
+                            : "border-[#E2E8F0] focus:ring-[#3B82F6]/20 focus:border-[#3B82F6]"
+                        )}
+                        placeholder="2000"
+                        value={outputTokens}
+                        onChange={(e) => setOutputTokens(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <div className="relative">
-                    <label className="block text-[11px] font-bold text-[#64748B] mb-1.5 pl-1">输出 Tokens</label>
-                    <input
-                      type="number"
-                      min="0"
-                      className="w-full px-4 py-2.5 border-2 border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors"
-                      placeholder="2000"
-                      value={outputTokens}
-                      onChange={(e) => setOutputTokens(e.target.value)}
-                    />
-                  </div>
+                  {calcWarning && (
+                    <p className="text-xs font-bold text-red-500 pl-1">{calcWarning}</p>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -439,19 +476,54 @@ function App() {
                       type="number"
                       min="0"
                       step="any"
-                      className="w-full px-4 py-2.5 border-2 border-[#E2E8F0] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors"
+                      className={cn(
+                        "w-full px-4 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-4 bg-[#F8FAFC] text-[#1E1B4B] font-bold text-sm transition-colors",
+                        calcWarning
+                          ? "border-red-400 focus:ring-red-400/20 focus:border-red-500"
+                          : "border-[#E2E8F0] focus:ring-[#3B82F6]/20 focus:border-[#3B82F6]"
+                      )}
                       placeholder="例如: 100"
                       value={inputAmount}
                       onChange={(e) => setInputAmount(e.target.value)}
                     />
+                    {calcWarning && (
+                      <p className="text-xs font-bold text-red-500 mt-2 pl-1">{calcWarning}</p>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0]/50 items-end">
+                    <div className="col-span-1">
+                      <label className="block text-[10px] font-bold text-[#94A3B8] mb-1">输入比例</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        className="w-full px-2 py-2 border-2 border-[#E2E8F0] rounded-lg bg-white text-[#1E1B4B] font-bold text-sm focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6]"
+                        value={ratioIn}
+                        onChange={(e) => setRatioIn(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-center pb-2 text-[#94A3B8] font-black">
+                      :
+                    </div>
+                    <div className="col-span-1">
+                      <label className="block text-[10px] font-bold text-[#94A3B8] mb-1">输出比例</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        className="w-full px-2 py-2 border-2 border-[#E2E8F0] rounded-lg bg-white text-[#1E1B4B] font-bold text-sm focus:outline-none focus:ring-4 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6]"
+                        value={ratioOut}
+                        onChange={(e) => setRatioOut(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 bg-[#F8FAFC] p-3 rounded-xl border border-[#E2E8F0]/50">
                     <div>
-                      <label className="block text-[10px] font-bold text-[#94A3B8] mb-1">推算输入 Tokens <span className="font-normal">(2)</span></label>
+                      <label className="block text-[10px] font-bold text-[#94A3B8] mb-1">推算输入 Tokens <span className="font-normal">({ratioIn || "0"})</span></label>
                       <div className="text-sm font-bold text-[#64748B]">{Math.round(effectiveTokens.in).toLocaleString()}</div>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-[#94A3B8] mb-1">推算输出 Tokens <span className="font-normal">(1)</span></label>
+                      <label className="block text-[10px] font-bold text-[#94A3B8] mb-1">推算输出 Tokens <span className="font-normal">({ratioOut || "0"})</span></label>
                       <div className="text-sm font-bold text-[#64748B]">{Math.round(effectiveTokens.out).toLocaleString()}</div>
                     </div>
                   </div>
