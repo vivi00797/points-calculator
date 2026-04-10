@@ -60,18 +60,23 @@ function App() {
 
         data.data.forEach((item: any) => {
           if (item.provider && grouped[item.provider]) {
-            grouped[item.provider].push({
-              id: item.id,
-              name: item.name,
-              inputPrice: item.inputPrice,
-              outputPrice: item.outputPrice
-            });
+            // Check if model already exists in the provider's array to prevent duplicates
+            if (!grouped[item.provider].some(m => m.id === item.id)) {
+              grouped[item.provider].push({
+                id: item.id,
+                name: item.name,
+                inputPrice: item.inputPrice,
+                outputPrice: item.outputPrice
+              });
+            }
           }
         });
 
         setProvidersData(prev => prev.map(provider => {
           const liveModels = grouped[provider.id];
           if (liveModels && liveModels.length > 0) {
+            // Sort models to ensure consistent order
+            liveModels.sort((a, b) => a.name.localeCompare(b.name));
             return { ...provider, models: liveModels };
           }
           return provider;
@@ -110,18 +115,23 @@ function App() {
 
             data.data.forEach((item: any) => {
               if (item.provider && grouped[item.provider]) {
-                grouped[item.provider].push({
-                  id: item.id,
-                  name: item.name,
-                  inputPrice: item.inputPrice,
-                  outputPrice: item.outputPrice
-                });
+                // Check if model already exists in the provider's array to prevent duplicates
+                if (!grouped[item.provider].some(m => m.id === item.id)) {
+                  grouped[item.provider].push({
+                    id: item.id,
+                    name: item.name,
+                    inputPrice: item.inputPrice,
+                    outputPrice: item.outputPrice
+                  });
+                }
               }
             });
 
             setProvidersData(prev => prev.map(provider => {
               const liveModels = grouped[provider.id];
               if (liveModels && liveModels.length > 0) {
+                // Sort models to ensure consistent order
+                liveModels.sort((a, b) => a.name.localeCompare(b.name));
                 return { ...provider, models: liveModels };
               }
               return provider;
