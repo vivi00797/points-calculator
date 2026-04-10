@@ -425,9 +425,9 @@ function App() {
               className="fixed z-[9999]"
               style={{ left: dropdownPos.left, top: dropdownPos.top, width: dropdownPos.width }}
             >
-              <div className="bg-white/95 backdrop-blur-xl border border-[#E2E8F0] rounded-2xl shadow-[0_20px_40px_rgb(0,0,0,0.1)] ring-1 ring-[#7C3AED]/10 overflow-hidden flex flex-col">
+              <div className="bg-white/95 backdrop-blur-xl border border-[#E2E8F0] rounded-2xl shadow-[0_20px_40px_rgb(0,0,0,0.1)] ring-1 ring-[#7C3AED]/10 overflow-hidden flex flex-col max-h-[360px]">
                 {filteredProviders.length > 0 ? (
-                  <div className="py-2 max-h-[360px] overflow-y-auto overscroll-contain">
+                  <div className="py-2 overflow-y-auto overscroll-contain flex-1">
                     {filteredProviders.map((provider) => (
                       <div key={provider.id} className="mb-2 last:mb-0">
                         <div className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[#1E1B4B] bg-[#F8FAFC]/95 sticky top-0 backdrop-blur-xl z-10 border-y border-[#E2E8F0]/80 first:border-t-0 shadow-sm">
