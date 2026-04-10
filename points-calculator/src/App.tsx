@@ -606,6 +606,13 @@ function App() {
           </div>
         </div>
 
+        {/* Footer */}
+        <div className="text-center pt-2 pb-4">
+          <p className="text-[11px] font-bold text-[#64748B]/70 tracking-wide">
+            Powered by @Li Yi
+          </p>
+        </div>
+
         {isDropdownOpen &&
           createPortal(
             <div
